@@ -27,12 +27,9 @@ For more questions, contact us here:
 
 PC version code: [GitHub](https://github.com/anonymousxptdr360/automatic-schedule-creation-/blob/main/Schedule%20generator)
 
-Mobile version code: GitHub
-[https://github.com/anonymousxptdr360/automatic-schedule-creation-/blob/main/Mobile%20version%20schedule%20generator](https://github.com/anonymousxptdr360/automatic-schedule-creation-/blob/main/Mobile%20version%20schedule%20generator)
+Mobile version code: [GitHub](https://github.com/anonymousxptdr360/automatic-schedule-creation-/blob/main/Mobile%20version%20schedule%20generator)
 
-PC version website: MyWebsite
-[https://stopbordo.odoo.com/horaire](https://stopbordo.odoo.com/horaire)
+PC version website: [MyWebsite](https://stopbordo.odoo.com/horaire)
 
-Mobile version website: MyWebsite
-[https://stopbordo.odoo.com/horaire/m](https://stopbordo.odoo.com/horaire/m)
+Mobile version website: [MyWebsite](https://stopbordo.odoo.com/horaire/m)
 
