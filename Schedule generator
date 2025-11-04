@@ -1,0 +1,981 @@
+<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur d'horaires</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* bg-slate-50 */
+        }
+        /* Style pour les champs */
+        input[type="date"], input[type="time"], input[type="number"], select {
+            border-width: 1px;
+            border-color: #D1D5DB; /* gray-300 */
+            border-radius: 0.375rem; /* rounded-md */
+            padding: 0.5rem 0.75rem;
+            width: 100%;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+            transition: all 0.2s ease-in-out;
+        }
+        input:focus, select:focus {
+            outline: 2px solid transparent;
+            outline-offset: 2px;
+            border-color: #4f46e5; /* indigo-600 */
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); /* ring */
+        }
+        /* Toggle Switch */
+        .toggle-bg:after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            background-color: white;
+            border-radius: 9999px;
+            transition: transform 0.2s ease-in-out;
+        }
+        input:checked + .toggle-bg:after {
+            transform: translateX(100%);
+        }
+        input:checked + .toggle-bg {
+            background-color: #4f46e5; /* indigo-600 */
+        }
+    </style>
+
+
+    
+    
+    <div class="max-w-6xl mx-auto flex justify-end mb-2 space-x-2">
+        <button id="lang-fr" class="px-3 py-1 text-sm font-medium text-white bg-indigo-600 rounded-md shadow-sm opacity-100">FR</button>
+        <button id="lang-en" class="px-3 py-1 text-sm font-medium text-indigo-700 bg-white border border-gray-300 rounded-md shadow-sm opacity-70 hover:opacity-100">EN</button>
+    </div>
+
+    <div class="max-w-6xl mx-auto bg-white p-6 md:p-8 rounded-xl shadow-2xl">
+        <h1 class="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 mb-6 border-b pb-4" data-i18n="title">Générateur d'horaires</h1>
+
+        <div class="grid md:grid-cols-2 gap-8">
+            
+            <div class="flex flex-col gap-6">
+                
+                
+                <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4" data-i18n="section1Title">1. Définir la "Palette" de créneaux</h2>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div>
+                            <label for="slot-day" class="block text-sm font-medium text-gray-600 mb-1" data-i18n="dayLabel">Jour de la semaine</label>
+                            <select id="slot-day">
+                                <option value="1" data-i18n="day1">Lundi</option>
+                                <option value="2" data-i18n="day2">Mardi</option>
+                                <option value="3" data-i18n="day3">Mercredi</option>
+                                <option value="4" data-i18n="day4">Jeudi</option>
+                                <option value="5" data-i18n="day5">Vendredi</option>
+                                <option value="6" data-i18n="day6">Samedi</option>
+                                <option value="0" data-i18n="day0">Dimanche</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label for="slot-start" class="block text-sm font-medium text-gray-600 mb-1" data-i18n="startLabel">Début (HH:mm)</label>
+                                <input type="time" id="slot-start" value="18:30">
+                            </div>
+                            <div>
+                                <label for="slot-end" class="block text-sm font-medium text-gray-600 mb-1" data-i18n="endLabel">Fin (HH:mm)</label>
+                                <input type="time" id="slot-end" value="20:00">
+                            </div>
+                        </div>
+                        <button id="add-slot-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-colors">
+                            <span data-i18n="addSlotBtn">+ Ajouter ce créneau</span>
+                        </button>
+                    </div>
+                    <div class="mt-4">
+                        <h3 class="text-md font-medium text-gray-600" data-i18n="definedSlots">Créneaux possibles :</h3>
+                        <ul id="slots-list" class="list-disc list-inside text-sm text-gray-700 mt-2 space-y-1"></ul>
+                    </div>
+                </div>
+
+                
+                <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4" data-i18n="section2Title">2. Organiser les Périodes</h2>
+                    <div id="periods-list-container" class="flex flex-col gap-4">
+                        
+                    </div>
+                    <button id="add-period-btn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-colors mt-4">
+                        <span data-i18n="addPeriodBtn">+ Ajouter une période</span>
+                    </button>
+                </div>
+
+                
+                <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4" data-i18n="section3Title">3. Définir les pauses (Vacances)</h2>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label for="break-start" class="block text-sm font-medium text-gray-600 mb-1" data-i18n="breakStartLabel">Début de la pause</label>
+                            <input type="date" id="break-start">
+                        </div>
+                        <div>
+                            <label for="break-end" class="block text-sm font-medium text-gray-600 mb-1" data-i18n="breakEndLabel">Fin de la pause</label>
+                            <input type="date" id="break-end">
+                        </div>
+                    </div>
+                    <button id="add-break-btn" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-colors mt-4">
+                        <span data-i18n="addBreakBtn">+ Ajouter cette pause</span>
+                    </button>
+                    <div class="mt-4">
+                        <h3 class="text-md font-medium text-gray-600" data-i18n="definedBreaks">Pauses définies :</h3>
+                        <ul id="breaks-list" class="list-disc list-inside text-sm text-gray-700 mt-2 space-y-1"></ul>
+                    </div>
+                </div>
+
+                
+                <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4" data-i18n="section4Title">4. Lancer la génération</h2>
+                    <div class="grid grid-cols-1 gap-3">
+                        <div>
+                            <label for="start-date" class="block text-sm font-medium text-gray-600 mb-1" data-i18n="startDateLabel">Date de début globale</label>
+                            <input type="date" id="start-date">
+                        </div>
+                        
+                        
+                        <div class="mt-2">
+                            <label class="flex items-center space-x-3 cursor-pointer">
+                                <input type="checkbox" id="use-global-end-date" class="w-5 h-5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500">
+                                <span class="text-sm font-medium text-gray-700" data-i18n="useGlobalEndDate">Ajouter une date de fin globale (optionnel)</span>
+                            </label>
+                        </div>
+                        <div id="global-end-date-container" class="mt-1" style="display: none;">
+                            <label for="global-end-date" class="block text-sm font-medium text-gray-600 mb-1" data-i18n="globalEndDateLabel">Date de fin globale</label>
+                            <input type="date" id="global-end-date">
+                        </div>
+                        
+
+                    </div>
+                    <button id="generate-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-colors mt-6 text-lg">
+                        <span data-i18n="generateBtn">Générer l'horaire</span>
+                    </button>
+                </div>
+
+                
+                <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4" data-i18n="section5Title">5. Options de formatage</h2>
+                    <div class="flex flex-col space-y-3">
+                        <label class="flex items-center space-x-3 cursor-pointer">
+                            <input type="checkbox" id="show-day-of-week" class="w-5 h-5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500" checked="">
+                            <span class="text-sm font-medium text-gray-700" data-i18n="showDayOfWeek">Afficher le jour de la semaine (ex: Lundi)</span>
+                        </label>
+                        <label class="flex items-center space-x-3 cursor-pointer">
+                            <input type="checkbox" id="show-year" class="w-5 h-5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500">
+                            <span class="text-sm font-medium text-gray-700" data-i18n="showYear">Afficher l'année (ex: 2025)</span>
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+
+            
+            <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm h-full flex flex-col">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4" data-i18n="section6Title">6. Résultats</h2>
+                
+                <div id="total-hours-display" class="bg-indigo-100 text-indigo-800 text-2xl font-bold p-4 rounded-lg text-center mb-6" style="display: none;">
+                    <span data-i18n="total">Total</span> : <span id="total-hours">0</span> <span data-i18n="hours">heures</span>
+                </div>
+
+                <div class="relative flex-grow h-[400px] overflow-y-auto bg-gray-50 border border-gray-300 rounded-lg p-4">
+                    <pre id="results-list" class="text-gray-700 text-sm whitespace-pre-wrap font-sans"></pre>
+                </div>
+                
+                
+                <div class="mt-6">
+                    <h3 class="text-lg font-semibold text-gray-700" data-i18n="copyTitle">Copier les résultats</h3>
+                    <div class="flex items-center space-x-4 my-3 bg-gray-100 p-2 rounded-lg">
+                        <input type="radio" id="copy-format-vertical" name="copy-format" value="vertical" class="w-4 h-4 text-indigo-600" checked="">
+                        <label for="copy-format-vertical" class="text-sm font-medium text-gray-700" data-i18n="copyVertical">Vertical</label>
+                        
+                        <input type="radio" id="copy-format-horizontal" name="copy-format" value="horizontal" class="w-4 h-4 text-indigo-600">
+                        <label for="copy-format-horizontal" class="text-sm font-medium text-gray-700" data-i18n="copyHorizontal">Horizontal</label>
+                    </div>
+
+                    <div class="h-24 overflow-y-auto bg-gray-50 border border-gray-300 rounded-lg p-3 text-xs text-gray-600">
+                        <pre id="copy-preview"></pre>
+                    </div>
+                    
+                    <button id="copy-btn" class="w-full bg-gray-700 hover:bg-gray-800 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-colors mt-4 relative">
+                        <span id="copy-btn-text" data-i18n="copyBtn">Copier</span>
+                        <div id="copy-feedback-success" class="absolute inset-0 bg-emerald-500 rounded-lg flex items-center justify-center text-white" style="opacity: 0; transition: opacity 0.3s ease-out; pointer-events: none;">
+                            
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- STATE ---
+            let slots = []; // { id, day, start, end, duration }
+            let periods = []; // { id, targetType, targetValue, activeSlotIds: [] }
+            let breaks = [];
+            let generatedSessions = []; // Stocke { date, slot }
+            let currentLang = 'fr';
+
+            // --- i18n (Traduction) ---
+            const translations = {
+                fr: {
+                    title: "Générateur d'horaires",
+                    section1Title: "1. Définir la \"Palette\" de créneaux",
+                    dayLabel: "Jour de la semaine",
+                    day1: "Lundi", day2: "Mardi", day3: "Mercredi", day4: "Jeudi", day5: "Vendredi", day6: "Samedi", day0: "Dimanche",
+                    startLabel: "Début (HH:mm)",
+                    endLabel: "Fin (HH:mm)",
+                    addSlotBtn: "+ Ajouter ce créneau",
+                    definedSlots: "Créneaux possibles :",
+                    section2Title: "2. Organiser les Périodes",
+                    addPeriodBtn: "+ Ajouter une période",
+                    periodTitle: (num) => `Période ${num}`,
+                    periodTarget: "Objectif de la période",
+                    periodTargetWeeks: "Durée (semaines)",
+                    periodTargetDate: "Date de fin",
+                    periodActiveSlots: "Créneaux actifs pour cette période",
+                    noSlotsForPeriod: "Définissez des créneaux dans la Section 1 pour les activer ici.",
+                    section3Title: "3. Définir les pauses (Vacances)",
+                    breakStartLabel: "Début de la pause",
+                    breakEndLabel: "Fin de la pause",
+                    addBreakBtn: "+ Ajouter cette pause",
+                    definedBreaks: "Pauses définies :",
+                    section4Title: "4. Lancer la génération",
+                    startDateLabel: "Date de début globale",
+                    useGlobalEndDate: "Ajouter une date de fin globale (optionnel)",
+                    globalEndDateLabel: "Date de fin globale",
+                    generateBtn: "Générer l'horaire",
+                    section5Title: "5. Options de formatage",
+                    showDayOfWeek: "Afficher le jour de la semaine (ex: Lundi)",
+                    showYear: "Afficher l'année (ex: 2025)",
+                    section6Title: "6. Résultats",
+                    total: "Total",
+                    hours: "heures",
+                    copyTitle: "Copier les résultats",
+                    copyVertical: "Vertical",
+                    copyHorizontal: "Horizontal (ex: ... - ...)",
+                    copyBtn: "Copier",
+                    errorMsg: "Erreur : Veuillez définir au moins un créneau (Section 1) et une date de début (Section 4). Si vous n'utilisez pas de 'Périodes', la 'Date de fin globale' est obligatoire.",
+                    noSessionsMsg: "Aucune session n'a pu être générée avec ces paramètres.",
+                    slotName: (day, start, end, duration) => `${day} de ${start} à ${end} (${duration.toFixed(2)}h)`,
+                    breakName: (start, end) => `du ${start} au ${end}`,
+                    copied: "Copié !"
+                },
+                en: {
+                    title: "Schedule Generator",
+                    section1Title: "1. Define \"Palette\" of slots",
+                    dayLabel: "Day of the week",
+                    day1: "Monday", day2: "Tuesday", day3: "Wednesday", day4: "Thursday", day5: "Friday", day6: "Saturday", day0: "Sunday",
+                    startLabel: "Start (HH:mm)",
+                    endLabel: "End (HH:mm)",
+                    addSlotBtn: "+ Add this slot",
+                    definedSlots: "Possible slots:",
+                    section2Title: "2. Organize Periods",
+                    addPeriodBtn: "+ Add a period",
+                    periodTitle: (num) => `Period ${num}`,
+                    periodTarget: "Period target",
+                    periodTargetWeeks: "Duration (weeks)",
+                    periodTargetDate: "End date",
+                    periodActiveSlots: "Active slots for this period",
+                    noSlotsForPeriod: "Define slots in Section 1 to activate them here.",
+                    section3Title: "3. Define breaks (Holidays)",
+                    breakStartLabel: "Break start",
+                    breakEndLabel: "Break end",
+                    addBreakBtn: "+ Add this break",
+                    definedBreaks: "Defined breaks:",
+                    section4Title: "4. Start Generation",
+                    startDateLabel: "Global start date",
+                    useGlobalEndDate: "Add global end date (optional)",
+                    globalEndDateLabel: "Global End Date",
+                    generateBtn: "Generate Schedule",
+                    section5Title: "5. Formatting Options",
+                    showDayOfWeek: "Show day of week (e.g., Monday)",
+                    showYear: "Show year (e.g., 2025)",
+                    section6Title: "6. Results",
+                    total: "Total",
+                    hours: "hours",
+                    copyTitle: "Copy results",
+                    copyVertical: "Vertical",
+                    copyHorizontal: "Horizontal (e.g., ... - ...)",
+                    copyBtn: "Copy",
+                    errorMsg: "Error: Please define at least one slot (Section 1) and a start date (Section 4). If not using 'Periods', a 'Global End Date' is required.",
+                    noSessionsMsg: "No sessions could be generated with these parameters.",
+                    slotName: (day, start, end, duration) => `${day} from ${start} to ${end} (${duration.toFixed(2)}h)`,
+                    breakName: (start, end) => `from ${start} to ${end}`,
+                    copied: "Copied!"
+                }
+            };
+
+            const i18nElems = document.querySelectorAll('[data-i18n]');
+            const dayNames = {
+                fr: ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"],
+                en: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+            };
+
+            function setLanguage(lang) {
+                if (lang === currentLang) return;
+                currentLang = lang;
+                
+                // Mettre à jour les boutons de langue
+                document.getElementById('lang-fr').classList.toggle('opacity-70', lang !== 'fr');
+                document.getElementById('lang-fr').classList.toggle('bg-white', lang !== 'fr');
+                document.getElementById('lang-fr').classList.toggle('text-indigo-700', lang !== 'fr');
+                document.getElementById('lang-fr').classList.toggle('opacity-100', lang === 'fr');
+                document.getElementById('lang-fr').classList.toggle('bg-indigo-600', lang === 'fr');
+                document.getElementById('lang-fr').classList.toggle('text-white', lang === 'fr');
+                
+                document.getElementById('lang-en').classList.toggle('opacity-70', lang !== 'en');
+                document.getElementById('lang-en').classList.toggle('bg-white', lang !== 'en');
+                document.getElementById('lang-en').classList.toggle('text-indigo-700', lang !== 'en');
+                document.getElementById('lang-en').classList.toggle('opacity-100', lang === 'en');
+                document.getElementById('lang-en').classList.toggle('bg-indigo-600', lang === 'en');
+                document.getElementById('lang-en').classList.toggle('text-white', lang === 'en');
+
+                // Mettre à jour les textes
+                const t = translations[lang];
+                i18nElems.forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (t[key] && typeof t[key] === 'string') { // Vérifier si c'est une string
+                        el.textContent = t[key];
+                    }
+                });
+                
+                // Mettre à jour les options du select
+                const select = document.getElementById('slot-day');
+                Array.from(select.options).forEach(opt => {
+                    const key = `day${opt.value}`;
+                    if(t[key]) opt.textContent = t[key];
+                });
+
+                // Rafraîchir les listes et les résultats
+                updateSlotsList();
+                updateBreaksList();
+                // Rafraîchir les titres des périodes
+                document.querySelectorAll('.period-card').forEach((pCard, index) => {
+                    pCard.querySelector('h3').textContent = t.periodTitle(index + 1);
+                });
+                // Rafraîchir les checkboxes des périodes
+                updateAllPeriodCheckboxLists();
+                renderResults();
+            }
+
+            document.getElementById('lang-fr').addEventListener('click', () => setLanguage('fr'));
+            document.getElementById('lang-en').addEventListener('click', () => setLanguage('en'));
+
+            // --- ÉLÉMENTS DU DOM ---
+            const addSlotBtn = document.getElementById('add-slot-btn');
+            const slotsList = document.getElementById('slots-list');
+            
+            const addPeriodBtn = document.getElementById('add-period-btn');
+            const periodsListContainer = document.getElementById('periods-list-container');
+
+            const addBreakBtn = document.getElementById('add-break-btn');
+            const breaksList = document.getElementById('breaks-list');
+ 
+            const useGlobalEndDateCheckbox = document.getElementById('use-global-end-date');
+            const globalEndDateContainer = document.getElementById('global-end-date-container');
+            const globalEndDateInput = document.getElementById('global-end-date');
+
+            const generateBtn = document.getElementById('generate-btn');
+            const resultsList = document.getElementById('results-list');
+            const totalHoursDisplay = document.getElementById('total-hours-display');
+            const totalHoursEl = document.getElementById('total-hours');
+            
+            const showDayOfWeek = document.getElementById('show-day-of-week');
+            const showYear = document.getElementById('show-year');
+
+            const copyBtn = document.getElementById('copy-btn');
+            const copyBtnText = document.getElementById('copy-btn-text');
+            const copyFeedbackSuccess = document.getElementById('copy-feedback-success');
+            const copyFormatVertical = document.getElementById('copy-format-vertical');
+            const copyFormatHorizontal = document.getElementById('copy-format-horizontal');
+            const copyPreview = document.getElementById('copy-preview');
+
+            // --- LOGIQUE ---
+
+            // (Section 1: Créneaux)
+            addSlotBtn.addEventListener('click', () => {
+                const day = document.getElementById('slot-day').value;
+                const start = document.getElementById('slot-start').value;
+                const end = document.getElementById('slot-end').value;
+
+                if (!start || !end) {
+                    console.error("Veuillez remplir les heures de début et de fin");
+                    return;
+                }
+
+                const [startH, startM] = start.split(':').map(Number);
+                const [endH, endM] = end.split(':').map(Number);
+                
+                let durationInMinutes = (endH * 60 + endM) - (startH * 60 + startM);
+                if (durationInMinutes < 0) { // Gérer les créneaux de nuit (ex: 22:00 - 02:00)
+                    durationInMinutes += 24 * 60;
+                }
+                
+                const durationInHours = durationInMinutes / 60;
+
+                const slot = {
+                    id: `slot_${crypto.randomUUID()}`,
+                    day: parseInt(day),
+                    start: start,
+                    end: end,
+                    duration: durationInHours
+                };
+                
+                slots.push(slot);
+                updateSlotsList();
+                updateAllPeriodCheckboxLists(); // Mettre à jour les périodes
+            });
+
+            function updateSlotsList() {
+                slotsList.innerHTML = '';
+                const t = translations[currentLang];
+                slots.forEach((slot, index) => {
+                    const li = document.createElement('li');
+                    const dayName = dayNames[currentLang][slot.day];
+                    li.textContent = t.slotName(dayName, slot.start, slot.end, slot.duration);
+                    li.className = 'flex justify-between items-center';
+                    
+                    const removeBtn = createRemoveBtn(() => {
+                        removeSlot(slot.id);
+                    });
+                    li.appendChild(removeBtn);
+                    
+                    slotsList.appendChild(li);
+                });
+            }
+
+            function removeSlot(slotId) {
+                // 1. Retirer de la palette globale
+                slots = slots.filter(s => s.id !== slotId);
+                
+                // 2. Retirer des périodes actives
+                periods.forEach(p => {
+                    p.activeSlotIds = p.activeSlotIds.filter(id => id !== slotId);
+                });
+
+                // 3. Rafraîchir l'UI
+                updateSlotsList();
+                updateAllPeriodCheckboxLists();
+            }
+
+            function createRemoveBtn(onClick) {
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = 'x';
+                removeBtn.className = 'text-red-500 hover:text-red-700 font-bold ml-2 text-xs';
+                removeBtn.onclick = onClick;
+                return removeBtn;
+            }
+
+            // (Section 2: Périodes)
+            addPeriodBtn.addEventListener('click', () => {
+                const periodId = `period_${crypto.randomUUID()}`;
+                const newPeriod = {
+                    id: periodId,
+                    targetType: 'weeks', // 'weeks' or 'date'
+                    targetValue: 5, // 5 (semaines) ou "YYYY-MM-DD"
+                    activeSlotIds: []
+                };
+                periods.push(newPeriod);
+                
+                // Créer la carte UI pour la période
+                periodsListContainer.appendChild(createPeriodCard(newPeriod));
+            });
+
+            function createPeriodCard(period) {
+                const t = translations[currentLang];
+                const card = document.createElement('div');
+                card.id = `period-card-${period.id}`;
+                card.dataset.periodId = period.id;
+                card.className = 'period-card bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-inner';
+
+                const cardHeader = document.createElement('div');
+                cardHeader.className = 'flex justify-between items-center mb-3';
+                
+                const title = document.createElement('h3');
+                title.className = 'text-lg font-semibold text-indigo-700';
+                title.textContent = t.periodTitle(periods.indexOf(period) + 1);
+                
+                const removeBtn = createRemoveBtn(() => {
+                    periods = periods.filter(p => p.id !== period.id);
+                    card.remove();
+                    // Renuméroter les titres
+                    const t = translations[currentLang]; // S'assurer d'avoir la bonne traduction
+                    document.querySelectorAll('.period-card').forEach((pCard, index) => {
+                        pCard.querySelector('h3').textContent = t.periodTitle(index + 1);
+                    });
+                });
+                removeBtn.className = 'text-red-500 hover:text-red-700 font-bold text-lg'; // Plus gros
+
+                cardHeader.appendChild(title);
+                cardHeader.appendChild(removeBtn);
+                card.appendChild(cardHeader);
+
+                // --- Objectif de la période ---
+                const targetLabel = document.createElement('label');
+                targetLabel.className = 'block text-sm font-medium text-gray-600 mb-2';
+                targetLabel.textContent = t.periodTarget;
+                card.appendChild(targetLabel);
+
+                const targetContainer = document.createElement('div');
+                targetContainer.className = 'flex gap-2 mb-4';
+
+                // Radio: Durée
+                const radioWeeksDiv = document.createElement('div');
+                radioWeeksDiv.className = 'flex items-center';
+                const radioWeeks = document.createElement('input');
+                radioWeeks.type = 'radio';
+                radioWeeks.id = `period-target-weeks-${period.id}`;
+                radioWeeks.name = `period-target-${period.id}`;
+                radioWeeks.value = 'weeks';
+                radioWeeks.checked = period.targetType === 'weeks';
+                radioWeeks.className = 'w-4 h-4 text-indigo-600';
+                const labelWeeks = document.createElement('label');
+                labelWeeks.htmlFor = radioWeeks.id;
+                labelWeeks.textContent = t.periodTargetWeeks;
+                labelWeeks.className = 'ml-2 text-sm text-gray-700';
+                radioWeeksDiv.appendChild(radioWeeks);
+                radioWeeksDiv.appendChild(labelWeeks);
+
+                // Radio: Date
+                const radioDateDiv = document.createElement('div');
+                radioDateDiv.className = 'flex items-center';
+                const radioDate = document.createElement('input');
+                radioDate.type = 'radio';
+                radioDate.id = `period-target-date-${period.id}`;
+                radioDate.name = `period-target-${period.id}`;
+                radioDate.value = 'date';
+                radioDate.checked = period.targetType === 'date';
+                radioDate.className = 'w-4 h-4 text-indigo-600';
+                const labelDate = document.createElement('label');
+                labelDate.htmlFor = radioDate.id;
+                labelDate.textContent = t.periodTargetDate;
+                labelDate.className = 'ml-2 text-sm text-gray-700';
+                radioDateDiv.appendChild(radioDate);
+                radioDateDiv.appendChild(labelDate);
+
+                targetContainer.appendChild(radioWeeksDiv);
+                targetContainer.appendChild(radioDateDiv);
+                card.appendChild(targetContainer);
+                
+                // --- Valeur de l'objectif ---
+                const valueContainer = document.createElement('div');
+                const inputWeeks = document.createElement('input');
+                inputWeeks.type = 'number';
+                inputWeeks.min = '1';
+                inputWeeks.value = (period.targetType === 'weeks') ? period.targetValue : 5;
+                inputWeeks.style.display = (period.targetType === 'weeks') ? 'block' : 'none';
+                inputWeeks.onchange = (e) => period.targetValue = parseInt(e.target.value);
+
+                const inputDate = document.createElement('input');
+                inputDate.type = 'date';
+                inputDate.value = (period.targetType === 'date') ? period.targetValue : new Date().toISOString().split('T')[0];
+                inputDate.style.display = (period.targetType === 'date') ? 'block' : 'none';
+                inputDate.onchange = (e) => period.targetValue = e.target.value;
+                
+                valueContainer.appendChild(inputWeeks);
+                valueContainer.appendChild(inputDate);
+                card.appendChild(valueContainer);
+
+                // Logique des radios
+                radioWeeks.onchange = () => {
+                    period.targetType = 'weeks';
+                    period.targetValue = parseInt(inputWeeks.value);
+                    inputWeeks.style.display = 'block';
+                    inputDate.style.display = 'none';
+                };
+                radioDate.onchange = () => {
+                    period.targetType = 'date';
+                    period.targetValue = inputDate.value;
+                    inputWeeks.style.display = 'none';
+                    inputDate.style.display = 'block';
+                };
+
+
+                // --- Checkboxes de Créneaux Actifs ---
+                const slotsLabel = document.createElement('label');
+                slotsLabel.className = 'block text-sm font-medium text-gray-600 mt-4 mb-2';
+                slotsLabel.textContent = t.periodActiveSlots;
+                card.appendChild(slotsLabel);
+
+                const checkboxContainer = document.createElement('div');
+                checkboxContainer.className = 'checkbox-container space-y-2';
+                card.appendChild(checkboxContainer);
+
+                updatePeriodCheckboxList(period, card); // Remplir les checkboxes
+
+                return card;
+            }
+
+            function updateAllPeriodCheckboxLists() {
+                document.querySelectorAll('.period-card').forEach(card => {
+                    const periodId = card.dataset.periodId;
+                    const period = periods.find(p => p.id === periodId);
+                    if (period) {
+                        updatePeriodCheckboxList(period, card);
+                    }
+                });
+            }
+
+            function updatePeriodCheckboxList(period, card) {
+                const t = translations[currentLang];
+                const checkboxContainer = card.querySelector('.checkbox-container');
+                checkboxContainer.innerHTML = ''; // Vider
+
+                if (slots.length === 0) {
+                    checkboxContainer.textContent = t.noSlotsForPeriod;
+                    return;
+                }
+
+                slots.forEach(slot => {
+                    const slotName = t.slotName(dayNames[currentLang][slot.day], slot.start, slot.end, slot.duration);
+                    
+                    const label = document.createElement('label');
+                    label.className = 'flex items-center space-x-3 cursor-pointer';
+                    
+                    const input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.value = slot.id;
+                    input.className = 'w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500';
+                    input.checked = period.activeSlotIds.includes(slot.id);
+
+                    input.onchange = (e) => {
+                        if (e.target.checked) {
+                            period.activeSlotIds.push(slot.id);
+                        } else {
+                            period.activeSlotIds = period.activeSlotIds.filter(id => id !== slot.id);
+                        }
+                    };
+
+                    const span = document.createElement('span');
+                    span.className = 'text-sm text-gray-700';
+                    span.textContent = slotName;
+
+                    label.appendChild(input);
+                    label.appendChild(span);
+                    checkboxContainer.appendChild(label);
+                });
+            }
+
+
+            // (Section 3: Pauses)
+            addBreakBtn.addEventListener('click', () => {
+                const start = document.getElementById('break-start').value;
+                const end = document.getElementById('break-end').value;
+
+                if (!start || !end) {
+                    console.error("Veuillez remplir les dates de début et de fin de pause");
+                    return;
+                }
+
+                // Normaliser les dates pour éviter les pbs de fuseau horaire
+                const breakStart = parseDateAsUTC(start);
+                const breakEnd = parseDateAsUTC(end);
+                if (!breakStart || !breakEnd) return; // Quitter si les dates sont invalides
+                breakEnd.setUTCHours(23, 59, 59, 999);
+
+                const breakPeriod = {
+                    start: breakStart,
+                    end: breakEnd
+                };
+                
+                breaks.push(breakPeriod);
+                updateBreaksList();
+            });
+
+            function updateBreaksList() {
+                breaksList.innerHTML = '';
+                const t = translations[currentLang];
+                breaks.forEach((b, index) => {
+                    const li = document.createElement('li');
+                    li.textContent = t.breakName(formatDate(b.start, currentLang, { showDay: false, showYear: false }), formatDate(b.end, currentLang, { showDay: false, showYear: false }));
+                    li.className = 'flex justify-between items-center';
+                    
+                    const removeBtn = createRemoveBtn(() => {
+                        breaks.splice(index, 1);
+                        updateBreaksList();
+                    });
+                    li.appendChild(removeBtn);
+                    
+                    breaksList.appendChild(li);
+                });
+            }
+            
+            // (Section 4: Génération - Listener pour checkbox)
+            useGlobalEndDateCheckbox.addEventListener('change', (e) => {
+                globalEndDateContainer.style.display = e.target.checked ? 'block' : 'none';
+            });
+
+            // (Section 4: Génération)
+            generateBtn.addEventListener('click', () => {
+                const startDateInput = document.getElementById('start-date').value;
+                const useGlobalEndDate = useGlobalEndDateCheckbox.checked;
+                const globalEndDateInputVal = globalEndDateInput.value;
+
+                // --- NOUVELLE VÉRIFICATION ---
+                if (!startDateInput || slots.length === 0) {
+                    resultsList.textContent = translations[currentLang].errorMsg;
+                    totalHoursDisplay.style.display = 'none';
+                    return;
+                }
+                
+                if (periods.length === 0 && !useGlobalEndDate) {
+                    // Si pas de période, la date de fin globale est obligatoire
+                    resultsList.textContent = translations[currentLang].errorMsg;
+                    totalHoursDisplay.style.display = 'none';
+                    return;
+                }
+                // --- FIN NOUVELLE VÉRIFICATION ---
+
+
+                // Parse global end date
+                let globalEndDate = null;
+                if (useGlobalEndDate && globalEndDateInputVal) {
+                    globalEndDate = parseDateAsUTC(globalEndDateInputVal);
+                    if (globalEndDate) globalEndDate.setUTCHours(23, 59, 59, 999); // Inclure le jour de fin
+                }
+
+                generatedSessions = []; // Vider les résultats précédents
+                let currentDate = parseDateAsUTC(startDateInput); // Normaliser
+                if (!currentDate) {
+                    resultsList.textContent = translations[currentLang].errorMsg;
+                    totalHoursDisplay.style.display = 'none';
+                    return;
+                }
+                let totalHours = 0;
+                let safetyCounter = 0; // Pour éviter les boucles infinies
+                let stopGeneration = false;
+
+                // --- NOUVELLE LOGIQUE: SI/SINON PÉRIODES ---
+                if (periods.length > 0) {
+                    // CAS 1: L'utilisateur a défini des périodes (logique existante)
+                    for (const period of periods) {
+                        if (stopGeneration) break;
+
+                        // 1. Déterminer la date de fin de cette période
+                        let periodEndDate;
+                        if (period.targetType === 'weeks') {
+                            periodEndDate = new Date(currentDate.getTime());
+                            periodEndDate.setUTCDate(periodEndDate.getUTCDate() + period.targetValue * 7);
+                        } else { // 'date'
+                            periodEndDate = parseDateAsUTC(period.targetValue);
+                        }
+                        if (!periodEndDate) continue; // Skip si date invalide
+                        periodEndDate.setUTCHours(23, 59, 59, 999); // Inclure le jour de fin
+
+                        // 2. Obtenir les créneaux actifs pour cette période
+                        const activeSlots = period.activeSlotIds.map(id => slots.find(s => s.id === id)).filter(Boolean);
+                        if (activeSlots.length === 0) {
+                            // Si aucun créneau n'est actif, avancer currentDate jusqu'à la fin de la période
+                            currentDate = new Date(periodEndDate.getTime());
+                            currentDate.setUTCDate(currentDate.getUTCDate() + 1); // Commencer le jour *après*
+                            continue; // Passer à la période suivante
+                        }
+
+                        // 3. Boucle 'while' pour cette période
+                        while (currentDate <= periodEndDate && (!globalEndDate || currentDate <= globalEndDate) && safetyCounter < 365 * 5) {
+                            const currentDayOfWeek = currentDate.getUTCDay();
+
+                            let isBreak = false;
+                            for (const b of breaks) {
+                                if (currentDate >= b.start && currentDate <= b.end) {
+                                    isBreak = true;
+                                    break;
+                                }
+                            }
+
+                            if (!isBreak) {
+                                for (const slot of activeSlots) {
+                                    if (slot.day === currentDayOfWeek) {
+                                        generatedSessions.push({ date: new Date(currentDate.getTime()), slot: slot });
+                                        totalHours += slot.duration;
+                                        break; // Une seule session par jour max
+                                    }
+                                }
+                            }
+
+                            currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+                            safetyCounter++;
+                        }
+                        // Fin de la boucle while (période terminée)
+                        
+                        // Vérifier si on s'est arrêté à cause de la date de fin globale
+                        if (globalEndDate && currentDate > globalEndDate) {
+                            stopGeneration = true;
+                        }
+                    }
+                    // Fin de la boucle for (toutes périodes terminées)
+                } else {
+                    // CAS 2: AUCUNE période définie. Utiliser la palette globale jusqu'à la date de fin globale.
+                    if (!globalEndDate) {
+                         // Sécurité, bien que déjà vérifié en haut
+                        resultsList.textContent = translations[currentLang].errorMsg;
+                        return;
+                    }
+                    
+                    const activeSlots = slots; // Utiliser TOUS les créneaux de la palette
+
+                    while (currentDate <= globalEndDate && safetyCounter < 365 * 5) {
+                        const currentDayOfWeek = currentDate.getUTCDay();
+
+                        let isBreak = false;
+                        for (const b of breaks) {
+                            if (currentDate >= b.start && currentDate <= b.end) {
+                                isBreak = true;
+                                break;
+                            }
+                        }
+
+                        if (!isBreak) {
+                            for (const slot of activeSlots) {
+                                if (slot.day === currentDayOfWeek) {
+                                    generatedSessions.push({ date: new Date(currentDate.getTime()), slot: slot });
+                                    totalHours += slot.duration;
+                                    break; // Une seule session par jour max
+                                }
+                            }
+                        }
+
+                        currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+                        safetyCounter++;
+                    }
+                }
+                // --- FIN NOUVELLE LOGIQUE ---
+
+
+                // Afficher le total
+                if (generatedSessions.length > 0) {
+                    totalHoursEl.textContent = totalHours.toLocaleString(currentLang, { minimumFractionDigits: 1, maximumFractionDigits: 2 });
+                    totalHoursDisplay.style.display = 'block';
+                } else {
+                    resultsList.textContent = translations[currentLang].noSessionsMsg;
+                    totalHoursDisplay.style.display = 'none';
+                }
+                
+                // Lancer le rendu
+                renderResults();
+            });
+
+            // Écouteurs pour les options de formatage
+            showDayOfWeek.addEventListener('change', renderResults);
+            showYear.addEventListener('change', renderResults);
+            copyFormatVertical.addEventListener('change', renderResults);
+            copyFormatHorizontal.addEventListener('change', renderResults);
+
+            function renderResults() {
+                if (generatedSessions.length === 0) {
+                    // Ne pas effacer les messages d'erreur ou de "pas de session"
+                    copyPreview.textContent = "";
+                    if (resultsList.textContent.startsWith(translations[currentLang].errorMsg) || resultsList.textContent.startsWith(translations[currentLang].noSessionsMsg)) {
+                        // Ne rien faire, garder le message d'erreur
+                    } else {
+                        resultsList.textContent = ""; // Vider si ce n'est pas un message d'erreur
+                    }
+                    return;
+                }
+
+                const options = {
+                    showDay: showDayOfWeek.checked,
+                    showYear: showYear.checked
+                };
+                
+                const outputList = generatedSessions.map(session => {
+                    const dateString = formatDate(session.date, currentLang, options);
+                    return `${dateString} de ${session.slot.start} à ${session.slot.end}`;
+                });
+
+                // 1. Mettre à jour l'affichage principal (toujours vertical)
+                resultsList.textContent = outputList.join('\n');
+
+                // 2. Mettre à jour l'aperçu de copie
+                const copyFormat = copyFormatVertical.checked ? 'vertical' : 'horizontal';
+                const separator = copyFormat === 'vertical' ? '\n' : ' - ';
+                copyPreview.textContent = outputList.join(separator);
+            }
+
+            copyBtn.addEventListener('click', () => {
+                const textToCopy = copyPreview.textContent;
+                if (!textToCopy) return;
+
+                const textArea = document.createElement('textarea');
+                textArea.value = textToCopy;
+                // Styles pour rendre le textarea invisible
+                textArea.style.position = 'fixed';
+                textArea.style.top = '0';
+                textArea.style.left = '0';
+                textArea.style.width = '2em';
+                textArea.style.height = '2em';
+                textArea.style.padding = '0';
+                textArea.style.border = 'none';
+                textArea.style.outline = 'none';
+                textArea.style.boxShadow = 'none';
+                textArea.style.background = 'transparent';
+
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    
+                    // Animation de succès
+                    copyFeedbackSuccess.style.opacity = '1';
+                    copyBtnText.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        copyFeedbackSuccess.style.opacity = '0';
+                        copyBtnText.style.opacity = '1';
+                    }, 2000);
+
+                } catch (err) {
+                    console.error('Erreur lors de la copie', err);
+                }
+                document.body.removeChild(textArea);
+            });
+
+            // Fonction utilitaire pour parser la date en UTC
+            function parseDateAsUTC(dateStr) {
+                if (!dateStr) return null;
+                const parts = dateStr.split('-').map(Number);
+                if (parts.length === 3 && !parts.some(isNaN)) {
+                    const [year, month, day] = parts;
+                    return new Date(Date.UTC(year, month - 1, day));
+                }
+                return null;
+            }
+
+            // Fonction utilitaire pour formater la date
+            function formatDate(date, lang, options) {
+                const { showDay, showYear } = options;
+                const formatOptions = {
+                    day: 'numeric',
+                    month: 'long',
+                    timeZone: 'UTC' // Important pour éviter les décalages de date
+                };
+                if (showDay) formatOptions.weekday = 'long';
+                if (showYear) formatOptions.year = 'numeric';
+                
+                let str = date.toLocaleDateString(lang, formatOptions);
+                return str.charAt(0).toUpperCase() + str.slice(1);
+            }
+
+            // Pré-remplir les dates
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+            today.setDate(today.getDate() + 30); // Date de fin par défaut à +30 jours
+            const endDateStr = today.toISOString().split('T')[0];
+
+            document.getElementById('start-date').value = todayStr;
+            document.getElementById('break-start').value = todayStr;
+            document.getElementById('break-end').value = todayStr;
+            document.getElementById('global-end-date').value = endDateStr;
+            
+            // Initialiser la langue
+            setLanguage('fr');
+
+        });
+    </script>
