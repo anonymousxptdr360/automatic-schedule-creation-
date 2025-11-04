@@ -22,3 +22,16 @@ So, in our example where we wanted to calculate 80 hours, just go to “Period 1
 
 For more questions, contact us here:
 [https://stopbordo.odoo.com/contactus](https://stopbordo.odoo.com/contactus)
+
+PC version code: GitHub
+[https://github.com/anonymousxptdr360/automatic-schedule-creation-/blob/main/Schedule%20generator](https://github.com/anonymousxptdr360/automatic-schedule-creation-/blob/main/Schedule%20generator)
+
+Mobile version code: GitHub
+[https://github.com/anonymousxptdr360/automatic-schedule-creation-/blob/main/Mobile%20version%20schedule%20generator](https://github.com/anonymousxptdr360/automatic-schedule-creation-/blob/main/Mobile%20version%20schedule%20generator)
+
+PC version website: MyWebsite
+[https://stopbordo.odoo.com/horaire](https://stopbordo.odoo.com/horaire)
+
+Mobile version website: MyWebsite
+[https://stopbordo.odoo.com/horaire/m](https://stopbordo.odoo.com/horaire/m)
+
