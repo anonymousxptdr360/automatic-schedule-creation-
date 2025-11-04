@@ -6,7 +6,7 @@ In the first part, we’ll assume that you’ll need to make up some hours; othe
 
 So, in “1. Define the Slot Palette,” we’ll enter Monday from 6:30 p.m. to 8:00 p.m. and click on “Add slot,” then add the same for Thursday, and finally for Saturday from 10 a.m. to 12 p.m.
 
-Next, in “2. Organize the Periods,” which is not a mandatory section, we’ll set up a period where we need to catch up in order to reach 80 hours on time. Select all the weeks to include them in the calculation — this gives us our first period (“Period 1”). Then, choose either the number of weeks or an end date you want for this period. We’ll check at the end how many weeks are needed to reach the 80 hours.
+Next, in “2. Organize the Periods,” which is not a mandatory section, we’ll set up a period where we need to catch up in order to reach 80 hours on time. Select all the weeks to include them in the calculation this gives us our first period (“Period 1”). Then, choose either the number of weeks or an end date you want for this period. We’ll check at the end how many weeks are needed to reach the 80 hours.
 
 Now, to continue the rest of the internship without counting the end of the first period we’ve already configured, click on “Add a period” and select all the weeks except the days we added at the beginning for makeup sessions. In our case, that’s Thursday and Saturday. And that’s it no need to touch these settings anymore.
 
