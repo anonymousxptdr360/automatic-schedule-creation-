@@ -25,8 +25,7 @@ For more questions, contact us here:
 
 
 
-PC version code: GitHub
-[https://github.com/anonymousxptdr360/automatic-schedule-creation-/blob/main/Schedule%20generator](https://github.com/anonymousxptdr360/automatic-schedule-creation-/blob/main/Schedule%20generator)
+PC version code: [GitHub](https://github.com/anonymousxptdr360/automatic-schedule-creation-/blob/main/Schedule%20generator)
 
 Mobile version code: GitHub
 [https://github.com/anonymousxptdr360/automatic-schedule-creation-/blob/main/Mobile%20version%20schedule%20generator](https://github.com/anonymousxptdr360/automatic-schedule-creation-/blob/main/Mobile%20version%20schedule%20generator)
